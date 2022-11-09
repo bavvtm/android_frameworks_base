@@ -5716,10 +5716,12 @@ public final class Settings {
         public static final String NOTIFICATION_VIBRATION_PATTERN = "notification_vibration_pattern";
 
         /**
-         * Keys we no longer back up under the current schema, but want to continue to
-         * process when restoring historical backup datasets.
-         *
-         * All settings in {@link LEGACY_RESTORE_SETTINGS} array *must* have a non-null validator,
+         * Whether to show advanced reboot options in power menu
+         * @hide
+         */
+        public static final String ADVANCED_REBOOT = "advanced_reboot";
+
+        /**
          * otherwise they won't be restored.
          *
          * @hide
