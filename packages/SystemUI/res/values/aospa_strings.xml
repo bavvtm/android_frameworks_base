@@ -34,4 +34,6 @@
     <string name="global_action_restart_bootloader">Bootloader</string>
     <string name="global_action_restart_ui">SystemUI</string>
 
+    <!-- Name of the network activity indicator on status bar. -->
+    <string name="status_bar_network_activity">Network activity</string>
 </resources>
