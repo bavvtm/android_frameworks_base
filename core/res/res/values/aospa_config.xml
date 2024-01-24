@@ -92,10 +92,17 @@
     <!-- Build properties from a GMS certified device against current platform SPL level -->
     <string-array name="config_certifiedBuildProperties" translatable="false">
       <!-- 
-        <item>Build.DEVICE</item>
         <item>Build.PRODUCT</item>
+        <item>Build.DEVICE</item>
+        <item>Build.MANUFACTURER</item>
+        <item>Build.BRAND</item>
         <item>Build.MODEL</item>
         <item>Build.FINGERPRINT</item>
+        <item>Build.SECURITY_PATCH</item>
+        <item>Build.FIRST_API_LEVEL</item>
+        <item>Build.ID</item>
+        <item>Build.TYPE</item>
+        <item>Build.TAGS</item>
       -->
     </string-array>
 

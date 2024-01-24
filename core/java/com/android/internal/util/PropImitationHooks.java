@@ -35,6 +35,8 @@ import com.android.internal.R;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.Set;
 
 public class PropImitationHooks {
@@ -101,6 +103,23 @@ public class PropImitationHooks {
     private static volatile String sProcessName;
     private static volatile boolean sIsGms, sIsFinsky, sIsPhotos;
 
+    public static String getBuildID(String fingerprint) {
+        Pattern pattern = Pattern.compile("([A-Za-z0-9]+\\.\\d+\\.\\d+\\.\\w+)");
+        Matcher matcher = pattern.matcher(fingerprint);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
+    }
+
+    public static String getDeviceName(String fingerprint) {
+        String[] parts = fingerprint.split("/");
+        if (parts.length >= 2) {
+            return parts[1];
+        }
+        return "";
+    }
+
     public static void setProps(Context context) {
         final String packageName = context.getPackageName();
         final String processName = Application.getProcessName();
@@ -153,10 +172,31 @@ public class PropImitationHooks {
         }
     }
 
+    private static void setVersionFieldString(String key, String value) {
+        try {
+            Field field = Build.VERSION.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Failed to spoof Build." + key, e);
+        }
+    }
+
+    private static void setVersionFieldInt(String key, int value) {
+        try {
+            Field field = Build.VERSION.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Failed to spoof Build." + key, e);
+        }
+    }
+
     private static void setCertifiedPropsForGms() {
-        if (sCertifiedProps.length != 4) {
-            Log.e(TAG, "Insufficient array size for certified props: "
-                    + sCertifiedProps.length + ", required 4");
+        if (sCertifiedProps.length == 0) {
+            Log.e(TAG, "No device arrays found.");
             return;
         }
         final boolean was = isGmsAddAccountActivityOnTop();
@@ -173,10 +213,21 @@ public class PropImitationHooks {
         };
         if (!was) {
             dlog("Spoofing build for GMS");
-            setPropValue("DEVICE", sCertifiedProps[0]);
-            setPropValue("PRODUCT", sCertifiedProps[1]);
-            setPropValue("MODEL", sCertifiedProps[2]);
-            setPropValue("FINGERPRINT", sCertifiedProps[3]);
+            setPropValue("PRODUCT", sCertifiedProps[0]);
+            setPropValue("DEVICE", sCertifiedProps[1].isEmpty() ? getDeviceName(sCertifiedProps[5]) : sCertifiedProps[1]);
+            setPropValue("MANUFACTURER", sCertifiedProps[2]);
+            setPropValue("BRAND", sCertifiedProps[3]);
+            setPropValue("MODEL", sCertifiedProps[4]);
+            setPropValue("FINGERPRINT", sCertifiedProps[5]);
+            setVersionFieldString("SECURITY_PATCH", sCertifiedProps[6]);
+            if (!sCertifiedProps[7].isEmpty() && sCertifiedProps[7].matches("2[3-6]")) {
+                setVersionFieldInt("DEVICE_INITIAL_SDK_INT", Integer.parseInt(sCertifiedProps[7]));
+            } else {
+                Log.e(TAG, "Value for DEVICE_INITIAL_SDK_INT must be between 23-26!");
+            }
+            setPropValue("ID", sCertifiedProps[8].isEmpty() ? getBuildID(sCertifiedProps[5]) : sCertifiedProps[8]);
+            setPropValue("TYPE", sCertifiedProps[9].isEmpty() ? "user" : sCertifiedProps[9]);
+            setPropValue("TAGS", sCertifiedProps[10].isEmpty() ? "release-keys" : sCertifiedProps[10]);
         } else {
             dlog("Skip spoofing build for GMS, because GmsAddAccountActivityOnTop");
         }
